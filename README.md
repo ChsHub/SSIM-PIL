@@ -1,10 +1,10 @@
 # SSIM-PIL
 Structural similarity algorithm with compatibility to PIL.
 
-<h2>Installation</h2>
+## Installation
 `python3 -m pip install SSIM-PIL`
 
-Usage Example
+## Usage Example
 Usage:
 ```python
 
