@@ -7,6 +7,7 @@ python3 -m pip install SSIM-PIL
 
 
 <h2>Usage Example</h2>
+Usage:
 ```python
 from SSIM_PIL import compare_ssim
 from PIL import Image
