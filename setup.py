@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='SSIM-PIL',
-    version='1.0.1',
+    version='1.0.2',
     description='Structural similarity',
     author='ChsHub',
     author_email='christian1193@web.com',
@@ -17,5 +17,5 @@ setup(
     license='MIT License',
     classifiers=['Programming Language :: Python :: 3']
 )
-#C:\Python37\python.exe -m setup.py sdist bdist_wheel
+#C:\Python37\python.exe setup.py sdist bdist_wheel
 #C:\Python37\python.exe -m twine upload dist/*
