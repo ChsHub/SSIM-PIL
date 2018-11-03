@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='SSIM-PIL',
-    version='1.0.0',
+    version='1.0.1',
     description='Structural similarity',
     author='ChsHub',
     author_email='christian1193@web.com',
