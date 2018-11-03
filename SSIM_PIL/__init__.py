@@ -1,4 +1,4 @@
-from SSIM_PIL.__main__ import compare_ssim
+from .__main__ import compare_ssim
 
 __all__ = ['compare_ssim']
 __name__ = 'SSIM-PIL'
