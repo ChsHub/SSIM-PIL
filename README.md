@@ -2,9 +2,9 @@
 Structural similarity algorithm with compatibility to PIL.
 
 <h2>Installation</h2>
-```python
+python
 python3 -m pip install SSIM-PIL
-```
+
 
 <h2>Usage Example</h2>
 ```python
