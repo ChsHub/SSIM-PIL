@@ -5,7 +5,7 @@ Structural similarity algorithm with compatibility to PIL.
 `python3 -m pip install SSIM-PIL`
 
 ## Usage Example
-Usage:
+
 ```python
 
 from SSIM_PIL import compare_ssim
