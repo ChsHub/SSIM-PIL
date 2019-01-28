@@ -10,21 +10,24 @@ def variance(color_count, average, pixel_len):
     return variance / pixel_len
 
 
-
-    # https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
-
-def compare_ssim(image_0, image_1) -> float:
+# https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
+def compare_ssim(image_0, image_1, window_size=7, GPU=True) -> float:
     """
     Compute the structural similarity between the two images.
     :param image_0: PIL Image object
     :param image_1: PIL Image object
+    :param window_size: Height and width of the image's sub-sections used
+    :param GPU: If true, try to compute on GPU
     :return: Structural similarity value
     """
     if image_0.size != image_1.size:
         raise AttributeError('Images do not have the same resolution')
     # no else
 
-    window_size = 7
+    if GPU:
+        import gpu_ssim
+        return gpu_ssim.compare(image_0, image_1, window_size)
+
     pixel_len = window_size * window_size
     dynamic_range = 255
     c_1 = (dynamic_range * 0.01) ** 2
