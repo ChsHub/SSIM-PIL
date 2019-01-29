@@ -7,39 +7,52 @@ def variance(color_count, average, pixel_len):
     for pixel in color_count:
         a = pixel - average
         variance += color_count[pixel] * a * a
-    return variance / pixel_len
+    return variance / (pixel_len - 1)
 
 
 # https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
-def compare_ssim(image_0, image_1, window_size=7, GPU=True) -> float:
+def compare_ssim(image_0, image_1, tile_size=7, GPU=False) -> float:
     """
     Compute the structural similarity between the two images.
     :param image_0: PIL Image object
     :param image_1: PIL Image object
-    :param window_size: Height and width of the image's sub-sections used
+    :param tile_size: Height and width of the image's sub-sections used
     :param GPU: If true, try to compute on GPU
     :return: Structural similarity value
     """
+
     if image_0.size != image_1.size:
-        raise AttributeError('Images do not have the same resolution')
+        raise AttributeError('The images do not have the same resolution')
+    # no else
+    if image_0.mode != image_1.mode:
+        raise AttributeError('The images have different color channels')
     # no else
 
-    if GPU:
-        import gpu_ssim
-        return gpu_ssim.compare(image_0, image_1, window_size)
-
-    pixel_len = window_size * window_size
+    pixel_len = tile_size * tile_size
     dynamic_range = 255
     c_1 = (dynamic_range * 0.01) ** 2
     c_2 = (dynamic_range * 0.03) ** 2
     width, height = image_0.size
-    width = width // window_size * window_size
-    height = height // window_size * window_size
+
+    if width < tile_size or height < tile_size:
+        raise AttributeError('The images are smaller than the window_size')
+    # no else
+
+    if GPU:
+        import gpu_ssim
+        # return
+
+        ssim = gpu_ssim.compare(image_0, image_1, tile_size, width, height, c_1, c_2)
+    # no else
+
+    width = width // tile_size * tile_size
+    height = height // tile_size * tile_size
     channels = range(len(image_0.mode))
     ssim = 0
 
-    for x, xw in zip(range(0, width, window_size), range(window_size, width + window_size, window_size)):
-        for y, yw in zip(range(0, height, window_size), range(window_size, height + window_size, window_size)):
+
+    for x, xw in zip(range(0, width, tile_size), range(tile_size, width + tile_size, tile_size)):
+        for y, yw in zip(range(0, height, tile_size), range(tile_size, height + tile_size, tile_size)):
             box = (x, y, xw, yw)
             tile_0 = image_0.crop(box)
             tile_1 = image_1.crop(box)
@@ -68,4 +81,9 @@ def compare_ssim(image_0, image_1, window_size=7, GPU=True) -> float:
                 ssim += (2 * average_0 * average_1 + c_1) * (2 * covariance + c_2) / (
                         average_0 * average_0 + average_1 * average_1 + c_1) / (variance_0 + variance_1 + c_2)
 
-    return ssim / (len(image_0.mode) * width * height) * window_size * window_size
+    return ssim / (len(image_0.mode) * width * height) * tile_size * tile_size
+
+
+if __name__ == "__main__":
+    from PIL import Image as pil_Image
+    compare_ssim(pil_Image.open("D:\Bilder/volume.jpg"), pil_Image.open("D:\Bilder/volume.jpg"), GPU=True)
