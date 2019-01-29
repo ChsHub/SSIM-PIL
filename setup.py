@@ -1,12 +1,13 @@
 import setuptools
 from distutils.core import setup
+from SSIM_PIL import __version__
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setup(
     name='SSIM-PIL',
-    version='1.0.2',
+    version=__version__,
     description='Structural similarity',
     author='ChsHub',
     author_email='christian1193@web.com',
