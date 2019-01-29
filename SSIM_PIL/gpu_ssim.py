@@ -24,7 +24,10 @@ __kernel void convert(
 {
     const sampler_t sampler =  CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_NEAREST;
     int2 pos = (int2)(get_global_id(0), get_global_id(1)) * tile_size;
+    res_g[get_global_id(0) * width + get_global_id(1)] = 0.0;
     
+    /*XXXXXXX*/
+    {
     uint4 pix0;
     uint4 pix1;
     int pixel_sum_0 = 0;
@@ -33,12 +36,12 @@ __kernel void convert(
     float variance_0 = 0;
     float variance_1 = 0;
     
-    for(int x=0; x < tile_size; x++)
+    for(int x=pos. x; x < (pos. x + tile_size); x++) // space between . and x to not replace it
     {
-        for(int y=0; y < tile_size; y++)
+        for(int y=pos. y; y < (pos. y + tile_size); y++)
         {
-            pix0 = read_imageui(img0, sampler, pos  + (int2)(x, y));
-            pix1 = read_imageui(img1, sampler, pos  + (int2)(x, y));
+            pix0 = read_imageui(img0, sampler, (int2)(x, y));
+            pix1 = read_imageui(img1, sampler, (int2)(x, y));
             pixel_sum_0 += pix0.x;
             pixel_sum_1 += pix1.x;
             covariance += pix0.x * pix1.x;
@@ -49,12 +52,12 @@ __kernel void convert(
     float average_1 = (float)pixel_sum_1 / pixel_len;
     float temp;
     
-    for(int x=0; x < tile_size; x++)
+    for(int x=pos. x; x < (pos. x + tile_size); x++)
     {
-        for(int y=0; y < tile_size; y++)
+        for(int y=pos. y; y < (pos. y + tile_size); y++)
         {
-            pix0 = read_imageui(img0, sampler, pos  + (int2)(x, y));
-            pix1 = read_imageui(img1, sampler, pos  + (int2)(x, y));
+            pix0 = read_imageui(img0, sampler, (int2)(x, y));
+            pix1 = read_imageui(img1, sampler, (int2)(x, y));
             temp = (float)pix0.x - average_0;
             variance_0 += temp * temp;
             temp = (float)pix1.x - average_1;
@@ -65,10 +68,18 @@ __kernel void convert(
     variance_1 /= pixel_len;
     
     
-    res_g[get_global_id(0) * width + get_global_id(1)] = (2.0 * average_0 * average_1 + c_1) * (2.0 * covariance + c_2) 
+    res_g[get_global_id(0) * width + get_global_id(1)] += (2.0 * average_0 * average_1 + c_1) * (2.0 * covariance + c_2) 
                             / (average_0 * average_0 + average_1 * average_1 + c_1) / (variance_0 + variance_1 + c_2);
+    }
+    /*XXXXXXX*/
 }
 '''
+CL_SOURCE = CL_SOURCE.split('/*XXXXXXX*/')
+# Do the same for all dimensions since there is no pixel access
+CL_SOURCE.insert(1, CL_SOURCE[1].replace('.x','.y'))
+CL_SOURCE.insert(1, CL_SOURCE[1].replace('.x','.z'))
+CL_SOURCE = ''.join(CL_SOURCE)
+
 print('\n' + '=' * 60 + '\nOpenCL Platforms and Devices')
 for platform in cl.get_platforms():  # Print each platform on this computer
     print('=' * 60)
@@ -102,19 +113,13 @@ def compare(image_0, image_1, tile_size, width, height, c_1, c_2) -> (float, boo
     result_np = np.empty(shape=width * height, dtype=np.float32)
     res_g = cl.Buffer(context, mf.WRITE_ONLY, result_np.nbytes)
 
-    ssim = 0
-    # with open("/ssim.cl", mode="rb") as f:
-    for dim in ['.x','.y','.z']:
-        program = cl.Program(context, CL_SOURCE.replace('.x', dim)).build()
-        program.convert(queue, (width//tile_size, height//tile_size), None,
-                        image_0, image_1, res_g, np.int32(tile_size),
-                        np.int32(width), np.float32(tile_size * tile_size),
-                        np.float32(c_1), np.float32(c_2))
+    program = cl.Program(context, CL_SOURCE).build()
+    program.convert(queue, (width//tile_size, height//tile_size), None,
+                    image_0, image_1, res_g, np.int32(tile_size),
+                    np.int32(width), np.float32(tile_size * tile_size),
+                    np.float32(c_1), np.float32(c_2))
 
-        cl.enqueue_copy(queue, result_np, res_g)
+    cl.enqueue_copy(queue, result_np, res_g)
 
-        # Check on CPU with Numpy:
-        # print(result_np)
-        ssim += result_np.sum()
-
+    ssim = result_np.sum()
     return ssim, False
