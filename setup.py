@@ -20,4 +20,4 @@ setup(
 )
 # C:\Python37\python.exe setup.py sdist bdist_wheel
 # C:\Python37\python.exe -m twine upload dist/*
-# https://www.lfd.uci.edu/~gohlke/pythonlibs/
+# https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl

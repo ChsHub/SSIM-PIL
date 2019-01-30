@@ -5,7 +5,14 @@ from .gpu_ssim import compare as gpu_compare
 from utility.timer import Timer
 
 
-def variance(color_count, average, pixel_len):
+def _get_variance(color_count:dict, average:float, pixel_len:int) -> float:
+    """
+    Compute the variance
+    :param color_count: Number of each color in the tile
+    :param average: Average pixel color in the tile
+    :param pixel_len: Number of pixels in the tile
+    :return: Variance
+    """
     variance = 0
     for pixel in color_count:
         a = pixel - average
@@ -14,7 +21,7 @@ def variance(color_count, average, pixel_len):
 
 
 # https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
-def compare_ssim(image_0, image_1, tile_size=7, GPU=False) -> float:
+def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
     """
     Compute the structural similarity between the two images.
     :param image_0: PIL Image object
@@ -78,8 +85,8 @@ def compare_ssim(image_0, image_1, tile_size=7, GPU=False) -> float:
                         average_1 = pixel_sum_1 / pixel_len
 
                         covariance = (covariance - pixel_sum_0 * pixel_sum_1 / pixel_len) / pixel_len
-                        variance_0 = variance(color_count_0, average_0, pixel_len)
-                        variance_1 = variance(color_count_1, average_1, pixel_len)
+                        variance_0 = _get_variance(color_count_0, average_0, pixel_len)
+                        variance_1 = _get_variance(color_count_1, average_1, pixel_len)
 
                         ssim_sum += (2 * average_0 * average_1 + c_1) * (2 * covariance + c_2) / (
                                 average_0 * average_0 + average_1 * average_1 + c_1) / (variance_0 + variance_1 + c_2)

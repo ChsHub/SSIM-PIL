@@ -1,5 +1,7 @@
 # SSIM-PIL
-Structural similarity algorithm with compatibility to PIL.
+Comparison of two images using the structural similarity algorithm(SSIM). It only requires with compatibility to PIL.
+Version 1.0.5 supports GPU acceleration via OpenCL.
+(Christoph Gohlke's distribution for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl)
 
 ## Installation
 `python3 -m pip install SSIM-PIL`
