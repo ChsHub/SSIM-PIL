@@ -96,7 +96,18 @@ def print_platform_info():
             print('    Device - Global Memory: {0:.0f} GB'.format(device.global_mem_size / 1073741824.0))
     print('\n')
 
-def compare(image_0, image_1, tile_size, width, height, c_1, c_2) -> (float, bool):
+def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) -> (float, bool):
+    """
+
+    :param image_0: First image
+    :param image_1: Second image
+    :param tile_size: Width/ height of image subsections
+    :param width:
+    :param height:
+    :param c_1:
+    :param c_2:
+    :return:
+    """
 
     platform = cl.get_platforms()[0]  # Select the first platform [0]
     device = platform.get_devices()[0]  # Select the first device on this platform [0]
@@ -116,7 +127,7 @@ def compare(image_0, image_1, tile_size, width, height, c_1, c_2) -> (float, boo
     program = cl.Program(context, CL_SOURCE).build()
     program.convert(queue, (width, height), None,
                     image_0, image_1, result_buffer, np.int32(tile_size),
-                    np.int32(width), np.float32(tile_size * tile_size),
+                    np.int32(width), np.float32(pixel_len),
                     np.float32(c_1), np.float32(c_2))
     # Receive result
     cl.enqueue_copy(queue, result, result_buffer)
