@@ -43,6 +43,9 @@ def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
     c_1 = (dynamic_range * 0.01) ** 2
     c_2 = (dynamic_range * 0.03) ** 2
     width, height = image_0.size
+    width = width // tile_size * tile_size
+    height = height // tile_size * tile_size
+    channels = range(len(image_0.mode))
 
     if width < tile_size or height < tile_size:
         raise AttributeError('The images are smaller than the window_size')
@@ -54,11 +57,8 @@ def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
             ssim_sum, error = gpu_compare(image_0, image_1, tile_size, width, height, c_1, c_2)
     # no else
 
-    width = width // tile_size * tile_size
-    height = height // tile_size * tile_size
-    channels = range(len(image_0.mode))
-
-    if not GPU or error:
+    # if not GPU or error:
+    if True:
         ssim_sum = 0
         with Timer('SERIAL', log=False):
             for x, xw in zip(range(0, width, tile_size), range(tile_size, width + tile_size, tile_size)):

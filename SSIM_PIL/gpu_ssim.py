@@ -102,13 +102,13 @@ def compare(image_0, image_1, tile_size, width, height, c_1, c_2) -> (float, boo
     device = platform.get_devices()[0]  # Select the first device on this platform [0]
     context = cl.Context([device])  # Create a context with your device
     queue = cl.CommandQueue(context)
+    width //= tile_size
+    height //= tile_size
 
     # convert images to numpy array and create buffer object
     # TODO: buffer RGB images
     image_0 = cl.image_from_array(context, np.array(image_0.convert("RGBA")), 4, "r", norm_int=False)
     image_1 = cl.image_from_array(context, np.array(image_1.convert("RGBA")), 4, "r", norm_int=False)
-    width = width // tile_size
-    height = height // tile_size
     result = np.zeros(shape=width * height, dtype=np.float32) # TODO change height // tile
     result_buffer = cl.Buffer(context, mf.WRITE_ONLY, result.nbytes)
 
@@ -121,7 +121,7 @@ def compare(image_0, image_1, tile_size, width, height, c_1, c_2) -> (float, boo
     # Receive result
     cl.enqueue_copy(queue, result, result_buffer)
     ssim = result.sum()
-    print(result)
+    # print(result)
 
     # TODO Error message and test for devices
     return ssim, False
