@@ -71,11 +71,7 @@ __kernel void convert(read_only image2d_t img0, read_only image2d_t img1, __glob
     /*XXXXXXX*/
 }
 '''
-# Copy paste the openCL code for all dimensions since there is no pixel access
-CL_SOURCE = CL_SOURCE.split('/*XXXXXXX*/')
-CL_SOURCE.insert(1, CL_SOURCE[1].replace('.x','.y'))
-CL_SOURCE.insert(1, CL_SOURCE[1].replace('.x','.z'))
-CL_SOURCE = ''.join(CL_SOURCE)
+
 
 def print_platform_info():
     print('\n' + '=' * 60 + '\nOpenCL Platforms and Devices')
@@ -98,17 +94,25 @@ def print_platform_info():
 
 def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) -> (float, bool):
     """
-
+    Get intermediate SSIM result using GPU
     :param image_0: First image
     :param image_1: Second image
-    :param tile_size: Width/ height of image subsections
-    :param width:
-    :param height:
-    :param c_1:
-    :param c_2:
-    :return:
+    :param tile_size: Width/ height of image subsections(tiles)
+    :param pixel_len: Number of pixels in the tiles
+    :param width: Image width
+    :param height: Image height
+    :param c_1: Constant 1
+    :param c_2: Constant 2
+    :return: Intermediate SSIM result
     """
 
+    # Copy paste the openCL code for all color dimensions since there is no pixel access
+    source = CL_SOURCE.split('/*XXXXXXX*/')
+    for dim in ['.y', '.z','.w'][:len(image_0.mode)-1]:
+        source.insert(1, source[1].replace('.x', dim))
+    source = ''.join(source)
+
+    # TODO probe earlier
     platform = cl.get_platforms()[0]  # Select the first platform [0]
     device = platform.get_devices()[0]  # Select the first device on this platform [0]
     context = cl.Context([device])  # Create a context with your device
@@ -116,23 +120,26 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     width //= tile_size
     height //= tile_size
 
-    # convert images to numpy array and create buffer object
+    # Convert images to numpy array and create buffer object
     # TODO: buffer RGB images
-    image_0 = cl.image_from_array(context, np.array(image_0.convert("RGBA")), 4, "r", norm_int=False)
-    image_1 = cl.image_from_array(context, np.array(image_1.convert("RGBA")), 4, "r", norm_int=False)
-    result = np.zeros(shape=width * height, dtype=np.float32) # TODO change height // tile
+    image_0 = image_0.convert('RGBA')
+    image_1 = image_1.convert('RGBA')
+    image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
+    image_1 = cl.image_from_array(context, np.array(image_1), len(image_1.mode), "r", norm_int=False)
+
+    # Initialize result vector with zeroes, because tile results are added.
+    result = np.zeros(shape=width * height, dtype=np.float32)
     result_buffer = cl.Buffer(context, mf.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
-    program = cl.Program(context, CL_SOURCE).build()
+    program = cl.Program(context, source).build()
     program.convert(queue, (width, height), None,
                     image_0, image_1, result_buffer, np.int32(tile_size),
                     np.int32(width), np.float32(pixel_len),
                     np.float32(c_1), np.float32(c_2))
-    # Receive result
+    # Copy result
     cl.enqueue_copy(queue, result, result_buffer)
     ssim = result.sum()
-    # print(result)
 
     # TODO Error message and test for devices
     return ssim, False

@@ -35,12 +35,10 @@ def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
 
     error = False
     if GPU:
-        with Timer('GPU PARALLEL', log=False):
-            ssim_sum, error = gpu_compare(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
+        ssim_sum, error = gpu_compare(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
     # no else
-
     if not GPU or error:
-        with Timer('SERIAL', log=False):
-            ssim_sum = get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
+        ssim_sum = get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
 
-    return ssim_sum / (len(image_0.mode) * width * height) * tile_size * tile_size
+    # Calculate mean
+    return ssim_sum * pixel_len / (len(image_0.mode) * width * height)
