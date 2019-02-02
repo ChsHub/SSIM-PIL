@@ -121,7 +121,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     height //= tile_size
 
     # Convert images to numpy array and create buffer object
-    # TODO: buffer RGB images
+    # TODO: how to buffer RGB images
     image_0 = image_0.convert('RGBA')
     image_1 = image_1.convert('RGBA')
     image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
@@ -139,9 +139,6 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
                     np.float32(c_1), np.float32(c_2))
     # Copy result
     cl.enqueue_copy(queue, result, result_buffer)
-    ssim = result.sum()
-
-    # TODO Error message and test for devices
-    return ssim, False
+    return result.sum()
 
 print_platform_info()

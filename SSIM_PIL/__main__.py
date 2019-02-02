@@ -1,6 +1,3 @@
-from ._gpu_strategy import get_ssim_sum as gpu_compare
-from ._cpu_strategy import get_ssim_sum
-from utility.timer import Timer
 # https://en.wikipedia.org/wiki/Standard_deviation#Population_standard_deviation_of_grades_of_eight_students
 # https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
 
@@ -33,12 +30,14 @@ def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
         raise AttributeError('The images are smaller than the window_size')
     # no else
 
-    error = False
     if GPU:
-        ssim_sum, error = gpu_compare(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
-    # no else
-    if not GPU or error:
-        ssim_sum = get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2)
+        try:
+            from ._gpu_strategy import get_ssim_sum
+        except Exception as e:
+            print(e)
+            from ._cpu_strategy import get_ssim_sum
+    else:
+        from ._cpu_strategy import get_ssim_sum
 
     # Calculate mean
-    return ssim_sum * pixel_len / (len(image_0.mode) * width * height)
+    return get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) * pixel_len / (len(image_0.mode) * width * height)
