@@ -34,7 +34,9 @@ def compare_ssim(image_0, image_1, tile_size:int=7, GPU:bool=False) -> float:
         try:
             from ._gpu_strategy import get_ssim_sum
         except Exception as e:
-            print(e)
+            print(e.replace("No module named 'pyopencl' ", "No module named 'pyopencl' "
+                  "cl12 version by Christoph Gohlke for windows is recommended: "
+                  "https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
             from ._cpu_strategy import get_ssim_sum
     else:
         from ._cpu_strategy import get_ssim_sum
