@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+
 def _get_variance(color_count: dict, average: float, pixel_len: int) -> float:
     """
     Compute the variance
