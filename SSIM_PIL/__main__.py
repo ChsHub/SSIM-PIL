@@ -1,7 +1,18 @@
+from ._cpu_strategy import get_ssim_sum as cpu_strategy
+
+_gpu_available = True
+try:
+    from ._gpu_strategy import get_ssim_sum as gpu_strategy
+except Exception as e:
+    print(str(e).replace("No module named 'pyopencl'", "No module named 'pyopencl'. "
+                                                        "cl12 version by Christoph Gohlke for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
+    _gpu_available = False
+
+
 # https://en.wikipedia.org/wiki/Standard_deviation#Population_standard_deviation_of_grades_of_eight_students
 # https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
 
-def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = False) -> float:
+def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> float:
     """
     Compute the structural similarity between the two images.
     :param image_0: PIL Image object
@@ -30,17 +41,12 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = False) -> flo
         raise AttributeError('The images are smaller than the window_size')
     # no else
 
-    if GPU:
-        try:
-            from ._gpu_strategy import get_ssim_sum
-        except Exception as e:
-            print(e.replace("No module named 'pyopencl' ", "No module named 'pyopencl' "
-                                                           "cl12 version by Christoph Gohlke for windows is recommended: "
-                                                           "https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
-            from ._cpu_strategy import get_ssim_sum
-    else:
-        from ._cpu_strategy import get_ssim_sum
+    # Select strategy
+    get_ssim_sum = cpu_strategy
+    if GPU and _gpu_available:
+        get_ssim_sum = gpu_strategy
+    # no else
 
     # Calculate mean
     return get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) * pixel_len / (
-                len(image_0.mode) * width * height)
+            len(image_0.mode) * width * height)

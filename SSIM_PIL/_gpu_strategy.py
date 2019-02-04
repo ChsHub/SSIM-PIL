@@ -1,8 +1,28 @@
 from __future__ import absolute_import, print_function
 import numpy as np
 import pyopencl as cl
-from pyopencl import mem_flags as mf
+from pyopencl import mem_flags
 
+
+def probe_opencl_support():
+    """
+    Search for a device with OpenCl support
+    :return: First found device or raise EnvironmentError if none is found
+    """
+    platforms = cl.get_platforms()  # Select the first platform [0]
+    if not platforms:
+        raise EnvironmentError('No openCL platform (or driver) available.')
+
+    # Return first found device
+    for platform in platforms:
+        devices = platform.get_devices()
+        if devices:
+            return devices[0]
+
+    raise EnvironmentError('No openCL devices (or driver) available.')
+
+
+_device = probe_opencl_support()
 """
 https://stackoverflow.com/a/26395800/7062162
 https://github.com/smistad/OpenCL-Gaussian-Blur/blob/master/gaussian_blur.cl
@@ -73,25 +93,6 @@ __kernel void convert(read_only image2d_t img0, read_only image2d_t img1, __glob
 '''
 
 
-def print_platform_info():
-    print('\n' + '=' * 60 + '\nOpenCL Platforms and Devices')
-    for platform in cl.get_platforms():  # Print each platform on this computer
-        print('=' * 60)
-        print('Platform - Name:  ' + platform.name)
-        print('Platform - Vendor:  ' + platform.vendor)
-        print('Platform - Version:  ' + platform.version)
-        print('Platform - Profile:  ' + platform.profile)
-        for device in platform.get_devices():  # Print each device per-platform
-            print('    ' + '-' * 56)
-            print('    Device - Name:  ' + device.name)
-            print('    Device - Type:  ' + cl.device_type.to_string(device.type))
-            print('    Device - Max Clock Speed:  {0} Mhz'.format(device.max_clock_frequency))
-            print('    Device - Compute Units:  {0}'.format(device.max_compute_units))
-            print('    Device - Local Memory:  {0:.0f} KB'.format(device.local_mem_size / 1024))
-            print('    Device - Constant Memory:  {0:.0f} KB'.format(device.max_constant_buffer_size / 1024))
-            print('    Device - Global Memory: {0:.0f} GB'.format(device.global_mem_size / 1073741824.0))
-    print('\n')
-
 def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) -> (float, bool):
     """
     Get intermediate SSIM result using GPU
@@ -108,14 +109,12 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
 
     # Copy paste the openCL code for all color dimensions since there is no pixel access
     source = CL_SOURCE.split('/*XXXXXXX*/')
-    for dim in ['.y', '.z','.w'][:len(image_0.mode)-1]:
+    for dim in ['.y', '.z', '.w'][:len(image_0.mode) - 1]:
         source.insert(1, source[1].replace('.x', dim))
     source = ''.join(source)
 
-    # TODO probe earlier
-    platform = cl.get_platforms()[0]  # Select the first platform [0]
-    device = platform.get_devices()[0]  # Select the first device on this platform [0]
-    context = cl.Context([device])  # Create a context with your device
+    # Create a context with selected device
+    context = cl.Context([_device])
     queue = cl.CommandQueue(context)
     width //= tile_size
     height //= tile_size
@@ -129,7 +128,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
 
     # Initialize result vector with zeroes, because tile results are added.
     result = np.zeros(shape=width * height, dtype=np.float32)
-    result_buffer = cl.Buffer(context, mf.WRITE_ONLY, result.nbytes)
+    result_buffer = cl.Buffer(context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
     program = cl.Program(context, source).build()
@@ -140,5 +139,3 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     # Copy result
     cl.enqueue_copy(queue, result, result_buffer)
     return result.sum()
-
-print_platform_info()
