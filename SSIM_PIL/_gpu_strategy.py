@@ -44,7 +44,7 @@ __kernel void convert(
     __read_only image2d_t img1, 
     __global float *res_g,
     __const int tile_size,
-    __const int width,
+    __const int width, __const int height,
     __const float pixel_len,
     const float c_1,
     const float c_2)
@@ -63,8 +63,6 @@ __kernel void convert(
         float covariance = 0;
         float variance_0 = 0;
         float variance_1 = 0;
-        __local uint4 pixels0[pixel_len][pixel_len];
-        __local uint4 pixels1[pixel_len][pixel_len];
         
         for(int x=pos. x; x < (pos. x + tile_size); x++) // Space between . and x prevents replacing during copy
         {
@@ -73,8 +71,6 @@ __kernel void convert(
     
                 pix0 = read_imageui(img0, sampler, (int2)(x, y));
                 pix1 = read_imageui(img1, sampler, (int2)(x, y));
-                pixels0[y * tile_size + x][0] = pix0;
-                pixels1[y * tile_size + x][0] = pix1;
                 pixel_sum_0 += pix0.x;
                 pixel_sum_1 += pix1.x;
                 covariance += pix0.x * pix1.x;
@@ -104,8 +100,9 @@ __kernel void convert(
         variance_0 /= pixel_len;
         variance_1 /= pixel_len;
         
-        res_g[get_global_id(1) + get_global_id(2) * width] += (2.0 * average_0 * average_1 + c_1) * (2.0 * covariance + c_2) 
-                                / (average_0 * average_0 + average_1 * average_1 + c_1) / (variance_0 + variance_1 + c_2);
+        res_g[get_global_id(0) * width * height + (get_global_id(1) + get_global_id(2) * width)] = 
+        (2.0 * average_0 * average_1 + c_1) * (2.0 * covariance + c_2)
+        / (average_0 * average_0 + average_1 * average_1 + c_1) / (variance_0 + variance_1 + c_2);
     }
     /*XXXXXXX*/
 }
@@ -141,9 +138,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
         for i, dim in enumerate(['.y', '.z', '.w'][:len(image_0.mode) - 1]):
             source.insert(2, source[1].replace('.x', dim).replace('get_global_id(0)==0', 'get_global_id(0)=='+str(i+1)))
         source = ''.join(source)
-        source = source.replace('[pixel_len]', '[42]')
-        with open('cl_code.cpp', mode='w') as f:
-            f.write(source)
+
     with Timer('CREATE CONTEXT'):
         # Create a context with selected device
         context = _context
@@ -161,7 +156,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     width //= tile_size
     height //= tile_size
     # Initialize result vector with zeroes, because tile results are added.
-    result = np.zeros(shape=width * height, dtype=np.float32)
+    result = np.zeros(shape=width * height * color_channels, dtype=np.float32)
     result_buffer = cl.Buffer(context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
@@ -169,8 +164,9 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
         program = cl.Program(context, source).build()
         program.convert(queue, (color_channels, width, height), None,
                         image_0, image_1, result_buffer, np.int32(tile_size),
-                        np.int32(width), np.float32(pixel_len),
+                        np.int32(width), np.int32(height), np.float32(pixel_len),
                         np.float32(c_1), np.float32(c_2))
+
     with Timer('Copy RESULT'):
         # Copy result
         cl.enqueue_copy(queue, result, result_buffer)
