@@ -1,12 +1,16 @@
 from __future__ import absolute_import, print_function
+
+from copy import copy
+
 import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
+from utility.timer import Timer
 
 
-def probe_opencl_support():
+def _create_context():
     """
-    Search for a device with OpenCl support
+    Search for a device with OpenCl support, and create device context
     :return: First found device or raise EnvironmentError if none is found
     """
     platforms = cl.get_platforms()  # Select the first platform [0]
@@ -17,12 +21,13 @@ def probe_opencl_support():
     for platform in platforms:
         devices = platform.get_devices()
         if devices:
-            return devices[0]
+            return cl.Context([devices[0]])
 
     raise EnvironmentError('No openCL devices (or driver) available.')
 
+# Saving context saves time during repeated function calls
+_context = _create_context()
 
-_device = probe_opencl_support()
 """
 https://stackoverflow.com/a/26395800/7062162
 https://github.com/smistad/OpenCL-Gaussian-Blur/blob/master/gaussian_blur.cl
@@ -33,7 +38,10 @@ https://benshope.blogspot.com/2013/11/pyopencl-tutorial-part-1-introspection.htm
 """
 
 CL_SOURCE = '''//CL//
-__kernel void convert(read_only image2d_t img0, read_only image2d_t img1, __global float *res_g,
+__kernel void convert(
+    __read_only image2d_t img0, 
+    __read_only image2d_t img1, 
+    __global float *res_g,
     const int tile_size,
     const int width,
     const float pixel_len,
@@ -53,6 +61,7 @@ __kernel void convert(read_only image2d_t img0, read_only image2d_t img1, __glob
     float covariance = 0;
     float variance_0 = 0;
     float variance_1 = 0;
+    __local pixels[42];
     
     for(int x=pos. x; x < (pos. x + tile_size); x++) // Space between . and x prevents replacing during copy
     {
@@ -107,35 +116,43 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     :return: Intermediate SSIM result
     """
 
-    # Copy paste the openCL code for all color dimensions since there is no pixel access
-    source = CL_SOURCE.split('/*XXXXXXX*/')
-    for dim in ['.y', '.z', '.w'][:len(image_0.mode) - 1]:
-        source.insert(1, source[1].replace('.x', dim))
-    source = ''.join(source)
+    with Timer('PREPARE SOURCE'):
+        # Copy paste the openCL code for all color dimensions since there is no pixel access
+        source = CL_SOURCE.split('/*XXXXXXX*/')
+        for dim in ['.y', '.z', '.w'][:len(image_0.mode) - 1]:
+            source.insert(1, source[1].replace('.x', dim))
+        source = ''.join(source)
 
-    # Create a context with selected device
-    context = cl.Context([_device])
-    queue = cl.CommandQueue(context)
+    with Timer('CREATE CONTEXT'):
+        # Create a context with selected device
+        context = _context
+        queue = cl.CommandQueue(context)
     width //= tile_size
     height //= tile_size
 
     # Convert images to numpy array and create buffer object
     # TODO: how to buffer RGB images
-    image_0 = image_0.convert('RGBA')
-    image_1 = image_1.convert('RGBA')
-    image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
-    image_1 = cl.image_from_array(context, np.array(image_1), len(image_1.mode), "r", norm_int=False)
+    with Timer('CONVERT IMAGES'):
+        image_0 = image_0.convert('RGBA')
+        image_1 = image_1.convert('RGBA')
+        image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
+        image_1 = cl.image_from_array(context, np.array(image_1), len(image_1.mode), "r", norm_int=False)
 
     # Initialize result vector with zeroes, because tile results are added.
     result = np.zeros(shape=width * height, dtype=np.float32)
     result_buffer = cl.Buffer(context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
-    program = cl.Program(context, source).build()
-    program.convert(queue, (width, height), None,
+    with Timer('RUN CL PROGRAM'):
+        program = cl.Program(context, source).build()
+        program.convert(queue, (width, height), None,
                     image_0, image_1, result_buffer, np.int32(tile_size),
                     np.int32(width), np.float32(pixel_len),
                     np.float32(c_1), np.float32(c_2))
-    # Copy result
-    cl.enqueue_copy(queue, result, result_buffer)
-    return result.sum()
+    with Timer('Copy RESULT'):
+        # Copy result
+        cl.enqueue_copy(queue, result, result_buffer)
+
+    with Timer('SUM RESULT'):
+        ssim_sum = result.sum()
+    return ssim_sum
