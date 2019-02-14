@@ -64,8 +64,8 @@ __kernel void convert(
 
         if(get_global_id(0) < width) res_g[get_global_id(0)] = pixel_sums[0][get_local_id(0)].x;
 
-
-    covariance[get_local_id(0)] = (covariance[get_local_id(0)] - pixel_sums[0] * pixel_sums[1] / pixel_len) / pixel_len;
+        // Finally calculate covariance
+        //covariance[get_local_id(0)] = (covariance[get_local_id(0)] - (pixel_sums[0] * pixel_sums[1]) / pixel_len) / pixel_len;
     /*if(get_global_id(0)==0)
     {
         uint4 pix0;

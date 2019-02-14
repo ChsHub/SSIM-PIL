@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
-from utility.timer import Timer
+from utility.timer import Timer # TODO REMOVE TIMING
 
 """
 https://stackoverflow.com/a/26395800/7062162
@@ -94,7 +94,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
 
     # Convert images to numpy array and create buffer object
     # TODO: how to buffer RGB images
-    with Timer('CONVERT IMAGES'):
+    with Timer('CONVERT IMAGES'):  # TODO REMOVE TIMING
         image_0 = image_0.convert("RGBA")
         image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
 
@@ -106,20 +106,20 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     result_buffer = cl.Buffer(context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
-    with Timer('BUILD CL PROGRAM'):
+    with Timer('BUILD CL PROGRAM'):  # TODO REMOVE TIMING
         program = cl.Program(context, source).build()
 
-    with Timer('RUN CL PROGRAM'):
+    with Timer('RUN CL PROGRAM'):  # TODO REMOVE TIMING
         program.convert(queue, (thread_num, 1), (work_group_size, 1),
                         image_0, image_1,
                         result_buffer,
                         np.int32(tile_size),
                         np.int32(width), np.int32(height), np.float32(pixel_len),
                         np.float32(c_1), np.float32(c_2))
-    with Timer('Copy RESULT'):
+    with Timer('Copy RESULT'): # TODO REMOVE TIMING
         # Copy result
         cl.enqueue_copy(queue, result, result_buffer)
 
-    with Timer('SUM RESULT'):
+    with Timer('SUM RESULT'): # TODO REMOVE TIMING
             ssim_sum = result.sum()
     return ssim_sum
