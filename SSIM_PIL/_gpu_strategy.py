@@ -1,11 +1,8 @@
 from __future__ import absolute_import, print_function
 
-from copy import copy
-
 import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
-from utility.timer import Timer
 
 
 def _create_context():
@@ -131,27 +128,24 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
 
     color_channels = len(image_0.mode)
 
-    with Timer('PREPARE SOURCE'):
-        # Copy paste the openCL code for all color dimensions since there is no pixel access
+    # Copy paste the openCL code for all color dimensions since there is no pixel access
 
-        source = CL_SOURCE.split('/*XXXXXXX*/')
-        for i, dim in enumerate(['.y', '.z', '.w'][:len(image_0.mode) - 1]):
-            source.insert(2, source[1].replace('.x', dim).replace('get_global_id(0)==0', 'get_global_id(0)=='+str(i+1)))
-        source = ''.join(source)
+    source = CL_SOURCE.split('/*XXXXXXX*/')
+    for i, dim in enumerate(['.y', '.z', '.w'][:len(image_0.mode) - 1]):
+        source.insert(2, source[1].replace('.x', dim).replace('get_global_id(0)==0', 'get_global_id(0)=='+str(i+1)))
+    source = ''.join(source)
 
-    with Timer('CREATE CONTEXT'):
-        # Create a context with selected device
-        context = _context
-        queue = cl.CommandQueue(context)
+    # Create a context with selected device
+    context = _context
+    queue = cl.CommandQueue(context)
 
     # Convert images to numpy array and create buffer object
     # TODO: how to buffer RGB images
-    with Timer('CONVERT IMAGES'):
-        image_0 = image_0.convert("RGBA")
-        image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
+    image_0 = image_0.convert("RGBA")
+    image_0 = cl.image_from_array(context, np.array(image_0), len(image_0.mode), "r", norm_int=False)
 
-        image_1 = image_1.convert("RGBA")
-        image_1 = cl.image_from_array(context, np.array(image_1), len(image_1.mode), "r", norm_int=False)
+    image_1 = image_1.convert("RGBA")
+    image_1 = cl.image_from_array(context, np.array(image_1), len(image_1.mode), "r", norm_int=False)
 
     width //= tile_size
     height //= tile_size
@@ -160,17 +154,14 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     result_buffer = cl.Buffer(context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Compile and run openCL program
-    with Timer('RUN CL PROGRAM'):
-        program = cl.Program(context, source).build()
-        program.convert(queue, (color_channels, width, height), None,
-                        image_0, image_1, result_buffer, np.int32(tile_size),
-                        np.int32(width), np.int32(height), np.float32(pixel_len),
-                        np.float32(c_1), np.float32(c_2))
+    program = cl.Program(context, source).build()
+    program.convert(queue, (color_channels, width, height), None,
+                    image_0, image_1, result_buffer, np.int32(tile_size),
+                    np.int32(width), np.int32(height), np.float32(pixel_len),
+                    np.float32(c_1), np.float32(c_2))
 
-    with Timer('Copy RESULT'):
-        # Copy result
-        cl.enqueue_copy(queue, result, result_buffer)
+    # Copy result
+    cl.enqueue_copy(queue, result, result_buffer)
 
-    with Timer('SUM RESULT'):
-        ssim_sum = result.sum()
+    ssim_sum = result.sum()
     return ssim_sum
