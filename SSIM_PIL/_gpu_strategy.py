@@ -4,6 +4,7 @@ import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
 
+
 """
 https://stackoverflow.com/a/26395800/7062162
 https://github.com/smistad/OpenCL-Gaussian-Blur/blob/master/gaussian_blur.cl
