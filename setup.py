@@ -8,7 +8,7 @@ with open("README.md", "r") as f:
 setup(
     name='SSIM-PIL',
     version=__version__,
-    description='Structural similarity',
+    description=long_description.split('\n')[1],
     author='ChsHub',
     author_email='christian1193@web.com',
     long_description=long_description,
