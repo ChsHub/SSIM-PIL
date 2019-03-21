@@ -1,5 +1,6 @@
 # SSIM-PIL
 Comparison of two images using the structural similarity algorithm (SSIM).
+The resulting value varies between 1.0 for identical images and 0.0 for completely different images.
 It's based on the PIL and also supports GPU acceleration via pyopencl.
 
 ## Installation
