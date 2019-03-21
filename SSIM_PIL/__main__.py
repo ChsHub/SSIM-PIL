@@ -40,6 +40,8 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> floa
     if width < tile_size or height < tile_size:
         raise AttributeError('The images are smaller than the window_size')
     # no else
+    if tile_size < 1:
+        raise AttributeError('The tile_size must be 1 or greater')
 
     # Select strategy
     get_ssim_sum = cpu_strategy
