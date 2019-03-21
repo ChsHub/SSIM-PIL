@@ -153,7 +153,7 @@ def _get_image_buffer(image):
     return cl.image_from_array(_context, image, num_channels=4, mode="r", norm_int=False)
 
 
-def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2) -> (float, bool):
+def get_ssim_sum(image_0, image_1, tile_size:int, pixel_len:int, width:int, height:int, c_1:float, c_2:float) -> (float, bool):
     """
     Get intermediate SSIM result using GPU
     :param image_0: First image
