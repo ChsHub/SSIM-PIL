@@ -1,9 +1,12 @@
 # SSIM-PIL
-Comparison of two images using the structural similarity algorithm (SSIM). It's compatible with the PIL.
-Supports GPU acceleration via pyopencl.
+Comparison of two images using the structural similarity algorithm (SSIM).
+It's based on the PIL and also supports GPU acceleration via pyopencl.
 
 ## Installation
 `python3 -m pip install SSIM-PIL`
+
+Be sure to install a working version of pyopencl to benefit from faster parallel execution on the GPU. (The code was
+tested with OpenCl version 1.2.)
 
 ## Usage Example
 
@@ -18,3 +21,7 @@ value = compare_ssim(image1, image2)
 print(value)
 
 ```
+
+## Feedback
+
+For feedback please contact me over github: https://github.com/ChsHub/SSIM-PIL.
