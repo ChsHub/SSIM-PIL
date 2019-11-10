@@ -4,7 +4,6 @@ import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
 
-
 """
 https://stackoverflow.com/a/26395800/7062162
 https://github.com/smistad/OpenCL-Gaussian-Blur/blob/master/gaussian_blur.cl
@@ -151,9 +150,10 @@ def _get_image_buffer(image):
     image = image.convert("RGBA")
     image = np.array(image)
     return cl.image_from_array(_context, image, num_channels=4, mode="r", norm_int=False)
+    # pyopencl._cl.LogicError: clCreateImage failed: INVALID_IMAGE_SIZE
+    # TODO large images fail
 
-
-def get_ssim_sum(image_0, image_1, tile_size:int, pixel_len:int, width:int, height:int, c_1:float, c_2:float) -> (float, bool):
+def get_ssim_sum(image_0, image_1, tile_size: int, pixel_len: int, width: int, height: int, c_1: float, c_2: float) -> float:
     """
     Get intermediate SSIM result using GPU
     :param image_0: First image

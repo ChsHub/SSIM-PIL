@@ -5,7 +5,7 @@ try:
     from ._gpu_strategy import get_ssim_sum as gpu_strategy
 except Exception as e:
     print(str(e).replace("No module named 'pyopencl'", "No module named 'pyopencl'. "
-                                                        "cl12 version by Christoph Gohlke for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
+        "cl12 version by Christoph Gohlke for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
     _gpu_available = False
 
 
