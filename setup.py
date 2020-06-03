@@ -10,7 +10,6 @@ setup(
     version=__version__,
     description=long_description.split('\n')[1],
     author='ChsHub',
-    author_email='christian1193@web.com',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ChsHub/SSIM-PIL",
