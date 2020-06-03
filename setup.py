@@ -10,7 +10,6 @@ setup(
     version=__version__,
     description=long_description.split('\n')[1],
     author='ChsHub',
-    author_email='christian1193@web.com',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ChsHub/SSIM-PIL",
@@ -19,6 +18,6 @@ setup(
     classifiers=['Programming Language :: Python :: 3']
 )
 
-# C:\Python37\python.exe setup.py sdist bdist_wheel
-# C:\Python37\python.exe -m twine upload dist/*
+# python setup.py sdist bdist_wheel
+# python -m twine upload dist/*
 # https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl

@@ -5,8 +5,8 @@ from os.path import join
 from PIL import Image
 from hypothesis import given, settings
 from hypothesis.strategies import floats, integers
+from logger_default import Logger
 from timerpy import Timer
-from utility.logger import Logger # TODO remove logger
 
 from SSIM_PIL._numpy_strategy import get_ssim_sum
 
@@ -26,7 +26,7 @@ def test_get_ssim_sum(image_0, image_1, tile_size, c_1, c_2):
         image_1 = Image.open(join(image_directory, test_images[image_1]))
 
         width, height = image_0.size
-        width = (width // tile_size )* tile_size
+        width = (width // tile_size) * tile_size
         height = (height // tile_size) * tile_size
         pixel_len = tile_size * tile_size
 
@@ -37,6 +37,7 @@ def test_get_ssim_sum(image_0, image_1, tile_size, c_1, c_2):
             print()
         except Exception as e:
             exception(e)
+
 
 if __name__ == "__main__":
     test_get_ssim_sum()
