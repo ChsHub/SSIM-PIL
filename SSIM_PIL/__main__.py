@@ -1,11 +1,13 @@
 from ._cpu_strategy import get_ssim_sum as cpu_strategy
 
 _gpu_available = True
+_msg = ""
+
 try:
     from ._gpu_strategy import get_ssim_sum as gpu_strategy
 except Exception as e:
-    print(str(e).replace("No module named 'pyopencl'", "No module named 'pyopencl'. "
-                                                        "cl12 version by Christoph Gohlke for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl"))
+    _msg = str(e).replace("No module named 'pyopencl'", "No module named 'pyopencl'. "
+                                                        "cl12 version by Christoph Gohlke for windows is recommended: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl")
     _gpu_available = False
 
 
@@ -45,8 +47,11 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> floa
 
     # Select strategy
     get_ssim_sum = cpu_strategy
-    if GPU and _gpu_available:
-        get_ssim_sum = gpu_strategy
+    if GPU:
+        if _gpu_available:
+            get_ssim_sum = gpu_strategy
+        else:
+            print(_msg)
     # no else
 
     # Calculate mean
