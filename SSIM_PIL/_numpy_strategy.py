@@ -27,7 +27,7 @@ def _get_tile_sums(image, tile_size, channels, width, height, tiles_per_row):
 
 def _get__tile_variance(image, tile_averages, tiles_per_row, tile_size):
     """
-    TODO Calculate variances for each tile. Subtact from each row?
+    TODO Calculate variances for each tile. Subtract from each row?
     :param image:
     :param tile_averages:
     :param tiles_per_row:
