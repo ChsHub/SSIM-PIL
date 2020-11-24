@@ -6,7 +6,7 @@ from hypothesis import given, settings
 from hypothesis.strategies import floats, integers
 from SSIM_PIL._gpu_strategy import get_ssim_sum
 
-image_directory = "\\test_images"
+image_directory = "test_images"
 test_images = listdir(image_directory)
 
 
