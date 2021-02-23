@@ -22,7 +22,7 @@ image2 = Image.open(path)
 value = compare_ssim(image1, image2) # Compare images using OpenCL by default
 print(value)
 
-value = compare_ssim(image1, image2, GPU=False) # Use CPU only version
+value = compare_ssim(image1, image2, GPU=False) #  Compare images using CPU-only version
 print(value)
 
 ```
