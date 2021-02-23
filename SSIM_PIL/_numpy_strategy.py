@@ -10,8 +10,8 @@ def _get_image_array(image, width, height, tile_size, channels):
         raise ValueError
 
     image = np.array(image)  # Create array
-    image = np.vstack(np.array_split(image, channels,
-                                     axis=2))  # Separate color channels and stack into 1D (height, width, channels) -> (height * channels, width)
+    # Separate color channels and stack into 1D (height, width, channels) -> (height * channels, width)
+    image = np.vstack(np.array_split(image, channels, axis=2))
     image = np.reshape(image, (tile_size, image.size // tile_size))  # Reshape into 2D tile width
     return image
 
@@ -48,7 +48,6 @@ def _get__tile_variance(image, tile_averages, tiles_per_row, tile_size):
     # TODO Squared
     image = np.multiply(image, image)
     # TODO Sum tile wise
-
 
     return image
 

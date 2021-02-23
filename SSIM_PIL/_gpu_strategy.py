@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags

@@ -15,7 +15,8 @@ setup(
     url="https://github.com/ChsHub/SSIM-PIL",
     packages=['SSIM_PIL'],
     license='MIT License',
-    classifiers=['Programming Language :: Python :: 3']
+    classifiers=['Programming Language :: Python :: 3'],
+    requires=['hypothesis']
 )
 
 # python setup.py sdist bdist_wheel
