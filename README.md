@@ -30,3 +30,8 @@ print(value)
 ## Feedback
 
 For feedback please contact me over github: https://github.com/ChsHub/SSIM-PIL.
+
+## Donate
+
+If you like my projects, I would appreciate any donation. 
+BTC:    bc1qkam6e23x6v4spdc7w52mwq0nag204meps78y9m

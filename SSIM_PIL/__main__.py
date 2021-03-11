@@ -12,7 +12,7 @@ except Exception as e:
 
 
 # https://en.wikipedia.org/wiki/Standard_deviation#Population_standard_deviation_of_grades_of_eight_students
-# https: // en.wikipedia.org / wiki / Structural_similarity  # Algorithm
+# https://en.wikipedia.org/wiki/Structural_similarity  # Algorithm
 
 def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> float:
     """
