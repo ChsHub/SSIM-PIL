@@ -22,6 +22,17 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> floa
     :param GPU: If true, try to compute on GPU
     :return: Structural similarity value
     """
+    # Verify input parameters
+    if tile_size < 1:
+        raise AttributeError('The tile_size must be 1 or greater')
+    # no else
+    if image_0.size != image_1.size:
+        raise AttributeError('The images do not have the same resolution')
+    # no else
+    if image_0.mode != image_1.mode:
+        raise AttributeError('The images have different color channels')
+    # no else
+
     # constants
     dynamic_range = 255
     c_1 = (dynamic_range * 0.01) ** 2
@@ -31,18 +42,9 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> floa
     width = width // tile_size * tile_size
     height = height // tile_size * tile_size
 
-    # Verify input parameters
-    if image_0.size != image_1.size:
-        raise AttributeError('The images do not have the same resolution')
-    # no else
-    if image_0.mode != image_1.mode:
-        raise AttributeError('The images have different color channels')
-    # no else
     if width < tile_size or height < tile_size:
-        raise AttributeError('The images are smaller than the window_size')
+        raise AttributeError('The images are smaller than the tile_size')
     # no else
-    if tile_size < 1:
-        raise AttributeError('The tile_size must be 1 or greater')
 
     # Select strategy
     get_ssim_sum = cpu_strategy
