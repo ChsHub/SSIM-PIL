@@ -35,7 +35,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
         for y in range(0, height, tile_size):
 
             # Get pixel tile
-            box = (x, y, x + 7, y + 7)
+            box = (x, y, x + tile_size, y + tile_size)
             tile_0 = image_0.crop(box)
             tile_1 = image_1.crop(box)
 
