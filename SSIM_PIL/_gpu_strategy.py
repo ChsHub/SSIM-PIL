@@ -1,9 +1,7 @@
-from __future__ import absolute_import, print_function
-
 import numpy as np
 import pyopencl as cl
 from pyopencl import mem_flags
-from utility.timer import Timer # TODO REMOVE TIMING
+from timerpy import Timer
 
 """
 https://stackoverflow.com/a/26395800/7062162
@@ -20,6 +18,7 @@ https://cnugteren.github.io/tutorial/pages/page14.html
 http://developer.download.nvidia.com/compute/DevZone/docs/html/OpenCL/doc/OpenCL_Programming_Guide.pdf
 https://cims.nyu.edu/~schlacht/OpenCLModel.pdf
 """
+
 
 def _create_context():
     """
@@ -42,7 +41,6 @@ def _create_context():
 
 # Saving context saves time during repeated function calls
 _context, _max_work_item_sizes = _create_context()
-
 
 with open(__file__.replace('_gpu_strategy.py', 'cl_code.cpp'), mode='r') as f:
     CL_SOURCE = f.read()
@@ -71,7 +69,7 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
     color_channels = len(image_0.mode)
     # Number of threads per work group has to be dividable by number of pixels per tile
     work_group_size = _max_work_item_sizes[0] - (_max_work_item_sizes[0] % pixel_len)
-    thread_num = (width * height) # One thread for each pixel
+    thread_num = (width * height)  # One thread for each pixel
     # If number of threads can't be divided, add additional threads
     if thread_num % work_group_size:
         thread_num = thread_num - (thread_num % work_group_size) + work_group_size
@@ -116,10 +114,10 @@ def get_ssim_sum(image_0, image_1, tile_size, pixel_len, width, height, c_1, c_2
                         np.int32(tile_size),
                         np.int32(width), np.int32(height), np.float32(pixel_len),
                         np.float32(c_1), np.float32(c_2))
-    with Timer('Copy RESULT'): # TODO REMOVE TIMING
+    with Timer('Copy RESULT'):  # TODO REMOVE TIMING
         # Copy result
         cl.enqueue_copy(queue, result, result_buffer)
 
-    with Timer('SUM RESULT'): # TODO REMOVE TIMING
-            ssim_sum = result.sum()
+    with Timer('SUM RESULT'):  # TODO REMOVE TIMING
+        ssim_sum = result.sum()
     return ssim_sum
