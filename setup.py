@@ -8,9 +8,8 @@ with open("README.md", "r") as f:
 setup(
     name='SSIM-PIL',
     version=__version__,
-    description='Structural similarity',
+    description=long_description.split('\n')[1],
     author='ChsHub',
-    author_email='christian1193@web.com',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ChsHub/SSIM-PIL",
@@ -18,8 +17,7 @@ setup(
     license='MIT License',
     classifiers=['Programming Language :: Python :: 3']
 )
-#
 
-# C:\Python37\python.exe -m twine upload dist/*
-
+# C:\Python38\python.exe setup.py sdist bdist_wheel
+# C:\Python38\python.exe -m twine upload dist/*
 # https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyopencl
