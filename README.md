@@ -19,10 +19,12 @@ from PIL import Image
 image1 = Image.open(path)
 image2 = Image.open(path)
 
-value = compare_ssim(image1, image2) # Compare images using OpenCL by default
+# Compare images using OpenCL by default
+value = compare_ssim(image1, image2)
 print(value)
 
-value = compare_ssim(image1, image2, GPU=False) #  Compare images using CPU-only version
+#  Compare images using CPU-only version
+value = compare_ssim(image1, image2, GPU=False)
 print(value)
 
 ```
