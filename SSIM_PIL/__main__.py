@@ -1,3 +1,5 @@
+from warnings import warn
+
 from ._cpu_strategy import get_ssim_sum as cpu_strategy
 
 _gpu_available = True
@@ -52,7 +54,9 @@ def compare_ssim(image_0, image_1, tile_size: int = 7, GPU: bool = True) -> floa
         if _gpu_available:
             get_ssim_sum = gpu_strategy
         else:
-            print(_msg)
+            warn("No openCL platform (or driver) available. CPU execution is used instead. \n" + _msg,
+                 category=ImportWarning,
+                 stacklevel=1)
     # no else
 
     # Calculate mean
