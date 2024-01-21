@@ -1,3 +1,4 @@
+<a href='https://ko-fi.com/D1D7EST39' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 # SSIM-PIL
 Comparison of two images using the structural similarity algorithm (SSIM).
 The resulting value varies between 1.0 for identical images and 0.0 for completely different images.
