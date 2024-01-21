@@ -1,9 +1,12 @@
+<a href='https://ko-fi.com/D1D7EST39' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 # SSIM-PIL
+
 Comparison of two images using the structural similarity algorithm (SSIM).
 The resulting value varies between 1.0 for identical images and 0.0 for completely different images.
 It's based on the PIL and also supports GPU acceleration via pyopencl.
 
 ## Installation
+
 `python3 -m pip install SSIM-PIL`
 
 Be sure to install a working version of pyopencl to benefit from faster parallel execution on the GPU. (The code was
