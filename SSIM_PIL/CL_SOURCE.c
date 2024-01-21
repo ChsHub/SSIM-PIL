@@ -47,7 +47,7 @@ __kernel void convert(
         average[0] = (float)pixel_sum[0] / pixel_len;
         average[1] = (float)pixel_sum[1] / pixel_len;
 
-        // Calculate sum the two images variances
+        // Calculate sum of the two images variances
         float variance_0_1_sum = 0.0;
         float temp_pix;
 
