@@ -140,6 +140,7 @@ def _create_program(context):
 _context = _create_context()
 _queue = cl.CommandQueue(_context)
 _program = _create_program(_context)
+_kernel = _program.convert
 
 
 def _get_image_buffer(image):
@@ -181,10 +182,10 @@ def get_ssim_sum(image_0, image_1, tile_size:int, pixel_len:int, width:int, heig
     result_buffer = cl.Buffer(_context, mem_flags.WRITE_ONLY, result.nbytes)
 
     # Run the program with one thread for every tile in every color
-    _program.convert(_queue, (color_channels, width, height), None,
-                     image_0, image_1, result_buffer, np.int32(tile_size),
-                     np.int32(width), np.int32(height), np.float32(pixel_len),
-                     np.float32(c_1), np.float32(c_2))
+    _kernel(_queue, (color_channels, width, height), None,
+            image_0, image_1, result_buffer, np.int32(tile_size),
+            np.int32(width), np.int32(height), np.float32(pixel_len),
+            np.float32(c_1), np.float32(c_2))
 
     # Copy result
     cl.enqueue_copy(_queue, result, result_buffer)
